@@ -20,11 +20,10 @@ containers) to launch a new machine.
 
 ## That sounds mad! Why would you want to use Ganger?
 
-The rationale for creating Ganger was driven by a real-world problem. At Forward3D, we use
-Hive to probe the data we import into Hadoop. Some of our processes are automatic, and run over
-small amounts of data every day - there are thousands of these processes. 
+The rationale for creating Ganger was driven by a real-world problem. I use
+Hive to query the data I import into Hadoop. They run over small amounts of data.
 [Hive local mode](http://hadoop-pig-hive-thejas.blogspot.co.uk/2013/04/running-hive-in-local-mode.html) is a
-good way to run small jobs quickly without the overhead of launching MapReduce JVMs.
+good way to run small jobs quickly without the overhead of launching MapReduce JVMs on a cluster.
 
 However, local mode seems to leak memory in some situations, and drops tons of junk into /tmp
 on the machine that eventually causes problems. Ganger was created to allow me to isolate
@@ -37,14 +36,44 @@ container (when considering the time required to run a query) is minimal.
 
 ## An example
 
-Put an ncat example here.
+You must have Docker installed (somewhere). The example config file assumes you're running
+[Boot2Docker](https://github.com/boot2docker/boot2docker) on Mac OS X. If you're not, then you will 
+need to modify the configuration file to add the URL to your Docker daemon. This can be local,
+on some servers somewhere, in the cloud, etc.
+
+Clone this repository, and `cd` into it, then run:
+
+    bundle install
+    bundle exec bin/ganger.rb
+
+This will use the default config file, which will pull an example dummy 'service' that uses
+ncat to echo back whatever you send it. This default image is hosted in
+[my DockerHub repository](https://registry.hub.docker.com/u/andytinycat/ncat/), and just contains
+ncat and will start it on 12345/tcp when run.
+
+To test it, telnet to it (it defaults to listening on 5454):
+
+    telnet localhost 5454
+
+In another shell, run `docker ps`
+
+    CONTAINER ID        IMAGE                     COMMAND                CREATED             STATUS              PORTS                      NAMES
+    c8c438e47f96        andytinycat/ncat:latest   ncat -l 12345 -k -c    14 hours ago        Up 2 seconds        0.0.0.0:49176->12345/tcp   nostalgic_bohr
+
+A Docker container was started to service the request.
+
+When you're done, exit your telnet session (CTRL-], then type `quit` on Mac OS X), and run
+`docker ps` again. The container will have shut down and been destroyed.
 
 ## Future features
 
-Ganger is deliberately very simple. However, the following features are planned:
+Ganger is a simple proof-of-concept. However, the following features are planned:
 
- - Container reuse; keep a "container pool" and reuse containers a configurable
-   number of times
+ - Container reuse; keep a "container pool" and reuse containers a configurable number of times
  - A simple status webpage, similar to HAproxy
  - Control of various TCP timeout parameters
  - Graceful switchovers to a new container (for upgrades, etc)
+ - Graceful cleanup of threads and containers when terminating
+ - Probing the service port before proxying
+ - Detecting containers that exit before a request can be sent (indicates broken container)
+ - Better error handling
