@@ -19,5 +19,3 @@ docker_options:
 ganger_options:
   
   listen_port: 5454
-  
-  
