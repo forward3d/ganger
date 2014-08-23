@@ -6,7 +6,7 @@ require_relative '../lib/ganger'
 
 # Logging
 $stdout.sync = true
-@log = Logger.new(STDOUT)
+log = Logger.new(STDOUT)
 
 # Keep track of threads, get a stack trace if a thread blows up
 @threads = []
@@ -28,11 +28,11 @@ end
 
 # Load configuration
 CONFIG_FILE = File.expand_path("../../config/ganger.yaml", __FILE__)
-@log.info("Using config file: #{CONFIG_FILE}")
+log.info("Using config file: #{CONFIG_FILE}")
 Ganger.configure do |configuration|
   Ganger::YamlConfigLoader.load_from_file(configuration, CONFIG_FILE)
 end
-@log.info("Loaded configuration from YAML file: #{Ganger.configuration}")
+log.info("Loaded configuration from YAML file: #{Ganger.configuration}")
 
 # Start the service
 server = TCPServer.new(nil, Ganger.configuration.proxy_listen_port)
