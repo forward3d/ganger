@@ -1,0 +1,23 @@
+# Options applicable to Docker
+docker_options:
+  
+  # These are all the daemons we can start Docker containers with
+  daemons:
+    - 'boot2docker'
+  
+  # The image - must be in the local repository
+  image: andytinycat/ncat
+  
+  # The command to be run - if absent, will run whatever the image specifies
+  docker_cmd:
+    cmd: ncat
+    args: [ -l, '12345', -k, -c, 'xargs -n1 echo']
+
+  # Port to expose - we can only expose one port as we only proxy one port
+  expose: 12345/tcp
+
+ganger_options:
+  
+  listen_port: 5454
+  
+  
