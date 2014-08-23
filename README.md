@@ -18,6 +18,10 @@ Ganger can use one or more Docker daemons - so you can spread the containers ove
 machines as you wish. Ganger will use the least-utilised daemon (the one running the fewest 
 containers) to launch a new machine.
 
+It's not important what the network service is - only that you supply a Docker image which
+was built with a port exposed via the `EXPOSE` command. You tell Ganger what that port is,
+what the port you want to be available to clients on is, and Ganger will do the rest.
+
 ## That sounds mad! Why would you want to use Ganger?
 
 The rationale for creating Ganger was driven by a real-world problem. I use
