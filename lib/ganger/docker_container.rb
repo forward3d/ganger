@@ -19,15 +19,23 @@ module Ganger
     end
     
     def dispose
-      info "Dispose was called - stopping and removing container"
-      @container.kill(:signal => "SIGKILL")
-      @container.delete(:force => true)
+      begin
+        info "Dispose was called - stopping and removing container"
+        @container.kill(:signal => "SIGKILL")
+        @container.delete(:force => true)
+      rescue => e
+        fatal "Disposal of container failed with exception: #{e.class}: #{e.message}"
+      end
     end
     
     private
     
     def info(msg)
       @log.info "#{@name}: #{msg}"
+    end
+    
+    def fatal(msg)
+      @log.fatal "#{@name}: #{msg}"
     end
     
   end
