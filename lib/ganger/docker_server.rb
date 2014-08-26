@@ -12,11 +12,13 @@ module Ganger
     
     def launch_container
       pull_image unless @image_pulled
-      container = Docker::Container.create({
-        'Cmd' => Ganger.configuration.docker_cmd_and_args,
+      container_opts = {
         'Image' => Ganger.configuration.docker_image,
         'ExposedPorts' => { Ganger.configuration.docker_expose => {} }
-      }, @connection)
+      }
+      container_opts['Cmd'] = Ganger.configuration.docker_cmd if Ganger.configuration.docker_cmd
+
+      container = Docker::Container.create(container_opts, @connection)
       container.start({
         "PortBindings" => { 
           Ganger.configuration.docker_expose => [{"HostPort" => ""}]

@@ -11,6 +11,7 @@ module Ganger
       configuration.proxy_listen_port = @yaml["ganger_options"]["listen_port"]
       configuration.service_timeout = @yaml["ganger_options"]["service_connection_timeout"]
       configuration.service_retry = @yaml["ganger_options"]["service_connection_retries"]
+      configuration.docker_timeout = @yaml["ganger_options"]["docker_timeout"]
       configuration
     end
     

@@ -12,6 +12,13 @@ module Ganger
       end
     end
     
+    def self.preload_image
+      load_servers if @docker_servers.nil?
+      @docker_servers.each do |server|
+        server.pull_image
+      end
+    end
+    
     private
     
     def self.load_servers      

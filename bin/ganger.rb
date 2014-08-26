@@ -36,6 +36,14 @@ Ganger.configure do |configuration|
 end
 log.info("Loaded configuration from YAML file: #{Ganger.configuration}")
 
+# Set Excon timeouts so API requests don't time out
+Excon.defaults[:write_timeout] = Ganger.configuration.docker_timeout
+Excon.defaults[:read_timeout] = Ganger.configuration.docker_timeout
+
+# Preload image by telling each Docker server configured to fetch it
+log.info("Telling all configured Docker servers to pull the image: #{Ganger.configuration.docker_image}")
+Ganger::DockerDispatcher.preload_image
+
 # Start the service
 server = TCPServer.new(nil, Ganger.configuration.proxy_listen_port)
 loop do
