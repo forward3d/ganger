@@ -2,7 +2,7 @@ module Ganger
   class Configuration
         
     attr_accessor :docker_daemons, :docker_image, :docker_cmd, :docker_args, :docker_expose
-    attr_accessor :proxy_listen_port
+    attr_accessor :proxy_listen_port, :service_timeout, :service_retry
     
     def initialize
       @docker_daemons = ['unix:///var/run/docker.sock']

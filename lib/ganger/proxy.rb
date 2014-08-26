@@ -14,11 +14,11 @@ module Ganger
       info "Received connection from #{@client_socket.remote_address.ip_address}:#{@client_socket.remote_address.ip_port}"
       @docker_container = DockerDispatcher.get_docker_container
       info "Obtained a Docker container; service port: #{@docker_container.service_port}"
-      @docker_socket = TCPSocket.new(@docker_container.service_host, @docker_container.service_port)
     end
     
     def main_loop
       begin
+        connect_to_service
         proxy
       rescue StandardError => e
         fatal "Exception: #{e.message}"
@@ -30,13 +30,13 @@ module Ganger
     def proxy
       info "Entering proxy loop"
       loop do
-        (ready_sockets, dummy, dummy) = IO.select([@client_socket, @docker_socket])
+        (ready_sockets, dummy, dummy) = IO.select([@client_socket, @service_socket])
         begin
           ready_sockets.each do |socket|
             data = socket.readpartial(4096)
             if socket == @client_socket
-              @docker_socket.write(data)
-              @docker_socket.flush
+              @service_socket.write(data)
+              @service_socket.flush
             else
               @client_socket.write(data)
               @client_socket.flush
@@ -54,10 +54,47 @@ module Ganger
       info "Cleaning up"
       @docker_container.dispose
       @client_socket.close
-      @docker_socket.close
+      @service_socket.close
     end
     
     private
+    
+    def get_service_socket      
+      addr = Socket.getaddrinfo(@docker_container.service_host, nil)
+      socket = Socket.new(Socket::AF_INET, Socket::SOCK_STREAM, 0)
+      seconds  = Ganger.configuration.service_timeout
+      useconds = 0
+      sockopt_value = [seconds, useconds].pack("l_2")
+      socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_RCVTIMEO, sockopt_value)
+      socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_SNDTIMEO, sockopt_value)
+      socket
+    end
+    
+    def connect_to_service
+      Ganger.configuration.service_retry.times do |count|
+        begin
+          socket = get_service_socket
+          socket.connect(
+            Socket.pack_sockaddr_in(@docker_container.service_port.to_i, @docker_container.service_host)
+          )
+          @service_socket = socket
+          break
+        rescue SystemCallError => e
+          if count == Ganger.configuration.service_retry
+            raise "No connection established with container after #{Ganger.configuration.service_retry} attempts; terminating connection"
+          end
+          # For timeouts, don't sleep; retry immediately as time has passed
+          if e.is_a?(Errno::ETIMEDOUT)
+            info "Timeout connecting to service after #{Ganger.configuration.service_timeout} seconds; retrying"
+          else
+            # Other errors should occur relatively quickly - so sleep a bit then retry
+            info "Exception thrown during connection to service: #{e.class}; retrying in #{Ganger.configuration.service_timeout} seconds"
+            sleep Ganger.configuration.service_timeout
+          end
+        end
+      end
+      info "Connection established"
+    end
     
     def info(msg)
       @log.info "#{@client_socket.remote_address.ip_address}:#{@client_socket.remote_address.ip_port}: #{msg}"

@@ -18,4 +18,10 @@ docker_options:
 
 ganger_options:
   
+  # Listen on this port for client connections
   listen_port: 5454
+  
+  # Try to connect immediately after starting the container, then
+  # 6 more times, with a timeout of 5 seconds
+  docker_connection_timeout: 5
+  docker_connection_retries: 6

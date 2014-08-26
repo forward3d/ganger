@@ -28,9 +28,11 @@ end
 
 # Load configuration
 CONFIG_FILE = File.expand_path("../../config/ganger.yaml", __FILE__)
-log.info("Using config file: #{CONFIG_FILE}")
+config_file = ARGV.empty? ? CONFIG_FILE : File.expand_path(ARGV.first)
+
+log.info("Using config file: #{config_file}")
 Ganger.configure do |configuration|
-  Ganger::YamlConfigLoader.load_from_file(configuration, CONFIG_FILE)
+  Ganger::YamlConfigLoader.load_from_file(configuration, config_file)
 end
 log.info("Loaded configuration from YAML file: #{Ganger.configuration}")
 
