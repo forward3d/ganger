@@ -53,7 +53,6 @@ module Ganger
       info "Cleaning up"
       @docker_container.dispose
       @client_socket.close
-      @service_socket.close
     end
     
     private
