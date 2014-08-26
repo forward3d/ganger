@@ -1,4 +1,3 @@
-require 'eventmachine'
 require 'logger'
 
 module Ganger
