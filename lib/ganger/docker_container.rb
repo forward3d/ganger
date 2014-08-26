@@ -20,7 +20,7 @@ module Ganger
     
     def dispose
       info "Dispose was called - stopping and removing container"
-      @container.kill(:signal => "SIGHUP")
+      @container.kill(:signal => "SIGKILL")
       @container.delete(:force => true)
     end
     
