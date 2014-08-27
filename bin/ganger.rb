@@ -45,6 +45,7 @@ log.info("Telling all configured Docker servers to pull the image: #{Ganger.conf
 Ganger::DockerDispatcher.preload_image
 
 # Start the service
+log.info("Starting TCP server on #{Ganger.configuration.proxy_listen_port}")
 server = TCPServer.new(nil, Ganger.configuration.proxy_listen_port)
 loop do
   @threads << Thread.new(server.accept) do |client_socket|

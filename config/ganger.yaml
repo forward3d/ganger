@@ -21,8 +21,8 @@ ganger_options:
   
   # Try to connect immediately after starting the container, then
   # 6 more times, with a timeout of 5 seconds
-  docker_connection_timeout: 5
-  docker_connection_retries: 6
+  service_connection_timeout: 5
+  service_connection_retries: 6
   
   # Wait 300 seconds for Docker to respond (image pulls can be slow!)
   docker_timeout: 300
