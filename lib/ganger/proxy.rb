@@ -44,6 +44,9 @@ module Ganger
         rescue EOFError
           info "Closing connection"
           break
+        rescue
+          fatal "Encountered exception while proxying: #{e.class}: #{e.message}"
+          break
         end
       end
       cleanup
