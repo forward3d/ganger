@@ -38,6 +38,14 @@ on every request.
 Docker is the perfect tool for this, since the time and overhead required to start a Docker
 container (when considering the time required to run a query) is minimal.
 
+## Features
+
+- Ganger can spread the load over multiple Docker daemons, launching new containers
+  on the least-utilised one
+- Ganger will try to connect to the service port a configurable number of times (with configurable timeout);
+  useful if you have a service that takes a while to start.
+- 
+
 ## An example
 
 You must have Docker installed (somewhere). The example config file assumes you're running
@@ -81,3 +89,8 @@ Ganger is a simple proof-of-concept. However, the following features are planned
  - Probing the service port before proxying
  - Detecting containers that exit before a request can be sent (indicates broken container)
  - Better error handling
+ 
+## Contributing
+ 
+Pull requests are welcomed! The current state of code works for the simple things I need it for,
+but there's so much more that could be added (see features above, tests, etc).
