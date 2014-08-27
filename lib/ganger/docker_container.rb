@@ -12,7 +12,7 @@ module Ganger
       
       # Figure out host and port for the service in this container
       @service_host = URI.parse(docker_uri).host
-      @service_port = @container.json["NetworkSettings"]["Ports"][Ganger.configuration.docker_expose].first["HostPort"]
+      poll_for_service_port
       
       info "Service host is: #{@service_host}; service port is #{@service_port}"
       
@@ -29,6 +29,19 @@ module Ganger
     end
     
     private
+    
+    def poll_for_service_port
+      loop do
+        if @container.json["NetworkSetting"]["Ports"].nil?
+          # It can take a while for Docker to assign a service port if the daemon is under load
+          info "Container doesn't have a service port; starting to poll"
+          sleep 1
+        else
+          @service_port = @container.json["NetworkSetting"]["Ports"][Ganger.configuration.docker_expose].first["HostPort"]
+          break
+        end
+      end
+    end
     
     def info(msg)
       @log.info "#{@name}: #{msg}"
