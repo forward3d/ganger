@@ -40,11 +40,10 @@ container (when considering the time required to run a query) is minimal.
 
 ## Features
 
-- Ganger can spread the load over multiple Docker daemons, launching new containers
-  on the least-utilised one
-- Ganger will try to connect to the service port a configurable number of times (with configurable timeout);
+- Spreads the load over multiple Docker daemons, launching new containers on the least-utilised one.
+- Tries to connect to the service port a configurable number of times (with configurable timeout);
   useful if you have a service that takes a while to start.
-- 
+- Tells all configured Docker daemons to pull the image on startup.
 
 ## An example
 
