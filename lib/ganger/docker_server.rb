@@ -40,7 +40,7 @@ module Ganger
     end
     
     def pull_image
-      Docker::Image.create({'fromImage' => Ganger.configuration.docker_image}, @connection)
+      Docker::Image.create({'fromImage' => Ganger.configuration.docker_image}, nil, @connection)
       @image_pulled = true
     end
     
