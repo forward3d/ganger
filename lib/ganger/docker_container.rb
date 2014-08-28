@@ -32,7 +32,11 @@ module Ganger
     
     def poll_for_service_port
       loop do
-        if @container.json["NetworkSettings"]["Ports"].nil?
+        if @container.json["NetworkSettings"]["Ports"].nil? ||
+           @container.json["NetworkSettings"]["Ports"][Ganger.configuration.docker_expose].nil? ||
+           @container.json["NetworkSettings"]["Ports"][Ganger.configuration.docker_expose].empty? ||
+           @container.json["NetworkSettings"]["Ports"][Ganger.configuration.docker_expose].first.nil? ||
+           @container.json["NetworkSettings"]["Ports"][Ganger.configuration.docker_expose].first["HostPort"].nil?
           # It can take a while for Docker to assign a service port if the daemon is under load
           info "Container doesn't have a service port; starting to poll"
           sleep 1
