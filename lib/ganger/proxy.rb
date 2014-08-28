@@ -17,6 +17,7 @@ module Ganger
     
     def main_loop
       begin
+        check_for_service_port
         connect_to_service
         proxy
       rescue StandardError => e
@@ -60,7 +61,13 @@ module Ganger
     
     private
     
-    def get_service_socket      
+    def check_for_service_port
+      if @docker_container.service_port.nil?
+        raise "Detected missing service port; terminating this connection"
+      end
+    end
+    
+    def get_service_socket           
       addr = Socket.getaddrinfo(@docker_container.service_host, nil)
       socket = Socket.new(Socket::AF_INET, Socket::SOCK_STREAM, 0)
       seconds  = Ganger.configuration.service_timeout
