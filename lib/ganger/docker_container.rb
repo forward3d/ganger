@@ -31,16 +31,12 @@ module Ganger
     private
     
     def get_service_port
-      if @container.json["NetworkSettings"]["Ports"].nil? ||
-         @container.json["NetworkSettings"]["Ports"][Ganger.configuration.docker_expose].nil? ||
-         @container.json["NetworkSettings"]["Ports"][Ganger.configuration.docker_expose].empty? ||
-         @container.json["NetworkSettings"]["Ports"][Ganger.configuration.docker_expose].first.nil? ||
-         @container.json["NetworkSettings"]["Ports"][Ganger.configuration.docker_expose].first["HostPort"].nil?
-        @service_port = nil
-        info "No service port found - container is broken"
-      else
+      begin
         @service_port = @container.json["NetworkSettings"]["Ports"][Ganger.configuration.docker_expose].first["HostPort"]
         info "Obtained service port: #{@service_port}"
+      rescue
+        @service_port = nil
+        warn "Container is broken - could not obtain service port"
       end
     end
     
