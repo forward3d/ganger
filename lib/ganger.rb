@@ -17,9 +17,14 @@ module Ganger
   def configure
     self.configuration ||= Configuration.new
     yield configuration
-    configuration.docker_daemons.map! do |daemon_address|
+    configuration.docker.daemons = [configuration.docker.daemons] unless configuration.docker.daemons.is_a? Array
+    configuration.docker.daemons.map! do |daemon_address|
       daemon_address == 'boot2docker' ? find_boot2docker_ip : daemon_address
     end
+  end
+  
+  def conf
+    @configuration
   end
   
   def find_boot2docker_ip

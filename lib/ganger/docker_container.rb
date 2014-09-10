@@ -34,7 +34,7 @@ module Ganger
     
     def get_service_port
       begin
-        @service_port = @container.json["NetworkSettings"]["Ports"][Ganger.configuration.docker_expose].first["HostPort"]
+        @service_port = @container.json["NetworkSettings"]["Ports"][Ganger.conf.docker.expose].first["HostPort"]
         info "Obtained service port: #{@service_port}"
       rescue
         @service_port = nil

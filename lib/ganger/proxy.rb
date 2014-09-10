@@ -62,7 +62,7 @@ module Ganger
     def get_service_socket           
       addr = Socket.getaddrinfo(@docker_container.service_host, nil)
       socket = Socket.new(Socket::AF_INET, Socket::SOCK_STREAM, 0)
-      seconds  = Ganger.configuration.service_timeout
+      seconds  = Ganger.conf.ganger.service_connection_timeout
       useconds = 0
       sockopt_value = [seconds, useconds].pack("l_2")
       socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_RCVTIMEO, sockopt_value)
@@ -71,7 +71,7 @@ module Ganger
     end
     
     def connect_to_service
-      Ganger.configuration.service_retry.times do |count|
+      Ganger.conf.ganger.service_connection_retries.times do |count|
         begin
           socket = get_service_socket
           socket.connect(
@@ -80,19 +80,19 @@ module Ganger
           @service_socket = socket
           break
         rescue SystemCallError => e
-          if count == Ganger.configuration.service_retry
-            raise "No connection established with container after #{Ganger.configuration.service_retry} attempts; terminating connection"
+          if count == Ganger.conf.ganger.service_connection_retries
+            raise "No connection established with container after #{Ganger.conf.ganger.service_connection_retries} attempts; terminating connection"
           end
           # For timeouts, don't sleep; retry immediately as time has passed
           if e.is_a?(Errno::ETIMEDOUT)
-            info "Timeout connecting to service after #{Ganger.configuration.service_timeout} seconds; retrying"
+            info "Timeout connecting to service after #{Ganger.conf.service_connection_timeout} seconds; retrying"
           elsif e.is_a?(Errno::ECONNREFUSED)
-            info "Connection refused; retrying in #{Ganger.configuration.service_timeout} seconds"
-            sleep Ganger.configuration.service_timeout
+            info "Connection refused; retrying in #{Ganger.conf.service_connection_timeout} seconds"
+            sleep Ganger.conf.service_connection_timeout
           else
             # Other errors should occur relatively quickly - so sleep a bit then retry
-            info "Exception thrown during connection to service: #{e.class}; retrying in #{Ganger.configuration.service_timeout} seconds"
-            sleep Ganger.configuration.service_timeout
+            info "Exception thrown during connection to service: #{e.class}; retrying in #{Ganger.conf.service_connection_timeout} seconds"
+            sleep Ganger.conf.service_connection_timeout
           end
         end
       end

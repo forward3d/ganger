@@ -29,7 +29,7 @@ module Ganger
     
     def self.load_servers      
       @docker_servers = []
-      Ganger.configuration.docker_daemons.each do |docker_url|
+      Ganger.conf.docker.daemons.each do |docker_url|
         @docker_servers << DockerServer.new(docker_url)
       end
     end

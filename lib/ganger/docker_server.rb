@@ -37,15 +37,15 @@ module Ganger
     def create_container
       pull_image unless @image_pulled
       container_opts = {
-        'Image' => Ganger.configuration.docker_image,
-        'ExposedPorts' => { Ganger.configuration.docker_expose => {} }
+        'Image' => Ganger.conf.docker.image,
+        'ExposedPorts' => { Ganger.conf.docker.expose => {} }
       }
-      container_opts['Cmd'] = Ganger.configuration.docker_cmd if Ganger.configuration.docker_cmd
+      container_opts['Cmd'] = Ganger.conf.docker.cmd if Ganger.conf.docker.cmd
 
       container = Docker::Container.create(container_opts, @connection)
       container.start({
         "PortBindings" => { 
-          Ganger.configuration.docker_expose => [{"HostPort" => ""}]
+          Ganger.conf.docker.expose => [{"HostPort" => ""}]
         }
       })
       DockerContainer.new(container, @docker_url)
@@ -62,7 +62,7 @@ module Ganger
     end
     
     def pull_image
-      Docker::Image.create({'fromImage' => Ganger.configuration.docker_image}, nil, @connection)
+      Docker::Image.create({'fromImage' => Ganger.conf.docker.image}, nil, @connection)
       @image_pulled = true
     end
     

@@ -27,26 +27,25 @@ Signal.trap('SIGTERM') do
 end
 
 # Load configuration
-CONFIG_FILE = File.expand_path("../../config/ganger.yaml", __FILE__)
+CONFIG_FILE = File.expand_path("../../config/ganger-config.rb", __FILE__)
 config_file = ARGV.empty? ? CONFIG_FILE : File.expand_path(ARGV.first)
 
 log.info("Using config file: #{config_file}")
-Ganger.configure do |configuration|
-  Ganger::YamlConfigLoader.load_from_file(configuration, config_file)
-end
-log.info("Loaded configuration from YAML file: #{Ganger.configuration}")
+require config_file
+
+log.info("Loaded configuration from file: #{Ganger.conf.to_s}")
 
 # Set Excon timeouts so API requests don't time out
-Excon.defaults[:write_timeout] = Ganger.configuration.docker_timeout
-Excon.defaults[:read_timeout] = Ganger.configuration.docker_timeout
+Excon.defaults[:write_timeout] = Ganger.conf.ganger.docker_timeout
+Excon.defaults[:read_timeout] = Ganger.conf.ganger.docker_timeout
 
 # Preload image by telling each Docker server configured to fetch it
-log.info("Telling all configured Docker servers to pull the image: #{Ganger.configuration.docker_image}")
+log.info("Telling all configured Docker servers to pull the image: #{Ganger.conf.docker.image}")
 Ganger::DockerDispatcher.preload_image
 
 # Start the service
-log.info("Starting TCP server on #{Ganger.configuration.proxy_listen_port}")
-server = TCPServer.new(nil, Ganger.configuration.proxy_listen_port)
+log.info("Starting TCP server on #{Ganger.conf.ganger.listen_port}")
+server = TCPServer.new(nil, Ganger.conf.ganger.listen_port)
 loop do
   @threads << Thread.new(server.accept) do |client_socket|
     proxy = Ganger::Proxy.new(client_socket)
