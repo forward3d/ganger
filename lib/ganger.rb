@@ -30,4 +30,6 @@ module Ganger
     "tcp://#{output}:2375"
   end
   
+  class MaxContainersReached < Exception ; end
+  
 end

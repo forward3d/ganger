@@ -1,27 +1,37 @@
 require 'docker'
+require 'thread'
 
 module Ganger
   class DockerServer
+    
+    attr_reader :docker_url
     
     def initialize(docker_url)
       @docker_url = docker_url
       @connection = Docker::Connection.new(docker_url, {})
       @containers = []
       @image_pulled = false
+      @mutex = Mutex.new
+      @max_containers = 10
     end
 
     def launch_container
-      loop do 
-        container = create_container
-        if container.service_port.nil?
-          warn "Got a broken container; disposing and recreating"
-          container.dispose
-          sleep 5
-        else
-          @containers << container
-          return container
+      @mutex.synchronize {
+        if @containers.size == @max_containers
+          raise Ganger::MaxContainersReached
         end
-      end
+        loop do 
+          container = create_container
+          if container.service_port.nil?
+            warn "Got a broken container; disposing and recreating"
+            container.dispose
+            sleep 5
+          else
+            @containers << container
+            return container
+          end
+        end
+      }
     end
     
     def create_container
@@ -54,6 +64,11 @@ module Ganger
     def pull_image
       Docker::Image.create({'fromImage' => Ganger.configuration.docker_image}, nil, @connection)
       @image_pulled = true
+    end
+    
+    def dispose_of(container)
+      @containers.delete_if {|c| c.id == container.id}
+      container.dispose
     end
     
   end

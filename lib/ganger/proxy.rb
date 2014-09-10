@@ -11,13 +11,11 @@ module Ganger
       @client_socket = client_socket
       @log = Logger.new(STDOUT)
       info "Received connection from #{@client_socket.remote_address.ip_address}:#{@client_socket.remote_address.ip_port}"
-      @docker_container = DockerDispatcher.get_docker_container
-      info "Obtained a Docker container; service port: #{@docker_container.service_port}"
     end
     
     def main_loop
       begin
-        check_for_service_port
+        obtain_docker_container
         connect_to_service
         proxy
       rescue StandardError => e
@@ -55,18 +53,12 @@ module Ganger
     
     def cleanup
       info "Cleaning up"
-      @docker_container.dispose
+      DockerDispatcher.dispose_container(@docker_container)
       @client_socket.close
     end
     
     private
-    
-    def check_for_service_port
-      if @docker_container.service_port.nil?
-        raise "Detected missing service port; terminating this connection"
-      end
-    end
-    
+
     def get_service_socket           
       addr = Socket.getaddrinfo(@docker_container.service_host, nil)
       socket = Socket.new(Socket::AF_INET, Socket::SOCK_STREAM, 0)
@@ -107,7 +99,24 @@ module Ganger
       info "Connection established"
     end
     
+    def obtain_docker_container
+      loop do
+        begin
+          @docker_container = DockerDispatcher.get_docker_container
+          info "Obtained a Docker container; service port: #{@docker_container.service_port}"
+          break
+        rescue MaxContainersReached => e
+          warn "Max containers reached on target server, sleeping and retrying"
+          sleep 5
+        end
+      end
+    end
+    
     def info(msg)
+      @log.info "#{@client_socket.remote_address.ip_address}:#{@client_socket.remote_address.ip_port}: #{msg}"
+    end
+    
+    def warn(msg)
       @log.info "#{@client_socket.remote_address.ip_address}:#{@client_socket.remote_address.ip_port}: #{msg}"
     end
     

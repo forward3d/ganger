@@ -2,16 +2,18 @@ module Ganger
   
   class DockerContainer
     
-    attr_accessor :service_host, :service_port
+    attr_reader :service_host, :service_port, :id, :docker_url
     
-    def initialize(container, docker_uri)
+    def initialize(container, docker_url)
+      @docker_url = docker_url
       @log = Logger.new(STDOUT)
       @container = container
+      @id = @container.json["Id"]
       @name = @container.json["Name"].gsub('/', '')
       info "Created container with properties: #{container.json.to_s}"
       
       # Figure out host and port for the service in this container
-      @service_host = URI.parse(docker_uri).host
+      @service_host = URI.parse(docker_url).host
       get_service_port
       
       info "Service host is: #{@service_host}; service port is #{@service_port}"

@@ -12,6 +12,12 @@ module Ganger
       end
     end
     
+    def self.dispose_container(container)
+      # Find the parent server for this container, and tell it that the container has been disposed of
+      parent_server = @docker_servers.find {|s| s.docker_url == container.docker_url}
+      parent_server.dispose_of(container)
+    end
+    
     def self.preload_image
       load_servers if @docker_servers.nil?
       @docker_servers.each do |server|
