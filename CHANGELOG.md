@@ -1,5 +1,9 @@
 # Ganger changelog
 
+## HEAD
+
+Huge redesign to support planned new features.
+
 ## 0.0.4
 
 Protection against faulty container launches (see [Docker bug 7563](https://github.com/docker/docker/issues/7563)) that can occur under high concurrency.
