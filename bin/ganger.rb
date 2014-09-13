@@ -32,6 +32,10 @@ config_file = ARGV.empty? ? CONFIG_FILE : File.expand_path(ARGV.first)
 
 log.info("Using config file: #{config_file}")
 require config_file
+unless Ganger.configuration.valid?
+  log.fatal("Configuration invalid; exiting")
+  exit 1
+end
 
 log.info("Loaded configuration from file: #{Ganger.conf.to_s}")
 
@@ -39,16 +43,24 @@ log.info("Loaded configuration from file: #{Ganger.conf.to_s}")
 Excon.defaults[:write_timeout] = Ganger.conf.ganger.docker_timeout
 Excon.defaults[:read_timeout] = Ganger.conf.ganger.docker_timeout
 
+# Choose the Ganger discovery engine
+docker_manager = Ganger::DockerManager.new
+case Ganger.conf.ganger.docker_discovery
+when 'static'
+  docker_manager.engine = Ganger::Engines::Static.new
+end
+
 # Preload image by telling each Docker server configured to fetch it
 log.info("Telling all configured Docker servers to pull the image: #{Ganger.conf.docker.image}")
-Ganger::DockerDispatcher.preload_image
+docker_manager.pull_image
 
-# Start the service
+# Start the connection-dispatching thread
+Ganger::ConnectionDispatcher.docker_manager = docker_manager
+connection_dispatch_thread = Thread.new { Ganger::ConnectionDispatcher.run }
+
+# Start the proxy listening port
 log.info("Starting TCP server on #{Ganger.conf.ganger.listen_port}")
 server = TCPServer.new(nil, Ganger.conf.ganger.listen_port)
 loop do
-  @threads << Thread.new(server.accept) do |client_socket|
-    proxy = Ganger::Proxy.new(client_socket)
-    proxy.main_loop
-  end
+  Ganger::ConnectionDispatcher.push(server.accept)
 end

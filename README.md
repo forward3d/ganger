@@ -44,6 +44,8 @@ container (when considering the time required to run a query) is minimal.
 - Tries to connect to the service port a configurable number of times (with configurable timeout);
   useful if you have a service that takes a while to start.
 - Tells all configured Docker daemons to pull the image on startup.
+- Control of various timeout and retry parameters.
+- 
 
 ## An example
 
@@ -82,12 +84,9 @@ Ganger is a simple proof-of-concept. However, the following features are planned
 
  - Container reuse; keep a "container pool" and reuse containers a configurable number of times
  - A simple status webpage, similar to HAproxy
- - Control of various TCP timeout parameters
  - Graceful switchovers to a new container (for upgrades, etc)
  - Graceful cleanup of threads and containers when terminating
- - Probing the service port before proxying
  - Detecting containers that exit before a request can be sent (indicates broken container)
- - Better error handling
  
 ## Contributing
  

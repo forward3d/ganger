@@ -2,11 +2,16 @@ require 'socket'
 require 'yaml'
 require 'logger'
 require 'uri'
+require 'thread'
+require 'thread_safe'
+require 'docker'
 
-require_relative 'ganger/yaml_config_loader'
+require_relative 'ganger/logging'
+require_relative 'ganger/engines/static'
+require_relative 'ganger/docker_manager'
+require_relative 'ganger/connection_dispatcher'
 require_relative 'ganger/docker_server'
 require_relative 'ganger/docker_container'
-require_relative 'ganger/docker_dispatcher'
 require_relative 'ganger/configuration'
 require_relative 'ganger/proxy'
 
@@ -17,9 +22,8 @@ module Ganger
   def configure
     self.configuration ||= Configuration.new
     yield configuration
-    configuration.docker.daemons = [configuration.docker.daemons] unless configuration.docker.daemons.is_a? Array
-    configuration.docker.daemons.map! do |daemon_address|
-      daemon_address == 'boot2docker' ? find_boot2docker_ip : daemon_address
+    configuration.docker.daemons.map! do |hash|
+      hash[:url] == 'boot2docker' ? {url: find_boot2docker_ip, max_containers: hash[:max_containers]} : hash
     end
   end
   

@@ -1,37 +1,32 @@
-require 'docker'
-require 'thread'
-
 module Ganger
   class DockerServer
+    include Logging
     
-    attr_reader :docker_url
+    attr_reader :url
     
-    def initialize(docker_url)
-      @docker_url = docker_url
-      @connection = Docker::Connection.new(docker_url, {})
-      @containers = []
+    def initialize(url, max_containers)
+      @url = url
+      @connection = Docker::Connection.new(url, {})
+      @containers = ThreadSafe::Array.new
       @image_pulled = false
-      @mutex = Mutex.new
-      @max_containers = 10
+      @max_containers = max_containers
     end
 
-    def launch_container
-      @mutex.synchronize {
-        if @containers.size == @max_containers
-          raise Ganger::MaxContainersReached
+    def get_container
+      if @containers.size == @max_containers
+        raise Ganger::MaxContainersReached
+      end
+      loop do 
+        container = create_container
+        if container.service_port.nil?
+          warn "Got a broken container; disposing and recreating"
+          container.dispose
+          sleep 1
+        else
+          @containers << container
+          return container
         end
-        loop do 
-          container = create_container
-          if container.service_port.nil?
-            warn "Got a broken container; disposing and recreating"
-            container.dispose
-            sleep 5
-          else
-            @containers << container
-            return container
-          end
-        end
-      }
+      end
     end
     
     def create_container
@@ -48,7 +43,7 @@ module Ganger
           Ganger.conf.docker.expose => [{"HostPort" => ""}]
         }
       })
-      DockerContainer.new(container, @docker_url)
+      DockerContainer.new(container, @url)
     end
     
     def kill_containers
@@ -66,7 +61,7 @@ module Ganger
       @image_pulled = true
     end
     
-    def dispose_of(container)
+    def dispose_of_container(container)
       @containers.delete_if {|c| c.id == container.id}
       container.dispose
     end

@@ -1,8 +1,15 @@
 Ganger.configure do |c|
 
   # These are all the Docker daemons we can start containers on
-  # Either specify a string, or an array of strings of Docker URLs
-  c.docker.daemons = "boot2docker"
+  # It must be an array of hashes, with each hash having a url key
+  # and a max_containers key. If you want to allow an infinite number of
+  # concurrent containers, specify -1. (This is not a good idea!)
+  c.docker.daemons = [
+    {
+      url: 'boot2docker',
+      max_containers: 2
+    }
+  ]
   
   # The image - will be pulled on startup
   c.docker.image = "andytinycat/ncat"
@@ -24,5 +31,10 @@ Ganger.configure do |c|
   
   # Wait 300 seconds for Docker to respond (image pulls can be slow!)
   c.ganger.docker_timeout = 300
+  
+  # Engine to use to locate Docker servers
+  # Only 'static' is available right now, but the plan is to support
+  # 'consul' (consul.io) as well
+  c.ganger.docker_discovery = 'static'
   
 end

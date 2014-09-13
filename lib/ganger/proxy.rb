@@ -1,32 +1,17 @@
-require 'logger'
-
 module Ganger
   class Proxy
+    include Logging
     
-    # Receive a connection from a client, ask for a Docker container to service the
-    # request, then proxy the connection to the container. When the connection ends,
-    # get rid of the container.
-    
-    def initialize(client_socket)
+    def initialize(client_socket, container)
+      @container = container
       @client_socket = client_socket
       @log = Logger.new(STDOUT)
       info "Received connection from #{@client_socket.remote_address.ip_address}:#{@client_socket.remote_address.ip_port}"
     end
     
-    def main_loop
-      begin
-        obtain_docker_container
-        connect_to_service
-        proxy
-      rescue StandardError => e
-        fatal "Exception: #{e.message}"
-        fatal e.backtrace.join("\n")
-        cleanup
-      end
-    end
-    
     def proxy
       info "Entering proxy loop"
+      connect_to_service
       loop do
         (ready_sockets, dummy, dummy) = IO.select([@client_socket, @service_socket])
         begin
@@ -43,24 +28,14 @@ module Ganger
         rescue EOFError
           info "Closing connection"
           break
-        rescue
-          fatal "Encountered exception while proxying: #{e.class}: #{e.message}"
-          break
         end
       end
-      cleanup
-    end
-    
-    def cleanup
-      info "Cleaning up"
-      DockerDispatcher.dispose_container(@docker_container)
-      @client_socket.close
     end
     
     private
 
     def get_service_socket           
-      addr = Socket.getaddrinfo(@docker_container.service_host, nil)
+      addr = Socket.getaddrinfo(@container.service_host, nil)
       socket = Socket.new(Socket::AF_INET, Socket::SOCK_STREAM, 0)
       seconds  = Ganger.conf.ganger.service_connection_timeout
       useconds = 0
@@ -75,7 +50,7 @@ module Ganger
         begin
           socket = get_service_socket
           socket.connect(
-            Socket.pack_sockaddr_in(@docker_container.service_port.to_i, @docker_container.service_host)
+            Socket.pack_sockaddr_in(@container.service_port.to_i, @container.service_host)
           )
           @service_socket = socket
           break
@@ -97,31 +72,6 @@ module Ganger
         end
       end
       info "Connection established"
-    end
-    
-    def obtain_docker_container
-      loop do
-        begin
-          @docker_container = DockerDispatcher.get_docker_container
-          info "Obtained a Docker container; service port: #{@docker_container.service_port}"
-          break
-        rescue MaxContainersReached => e
-          warn "Max containers reached on target server, sleeping and retrying"
-          sleep 5
-        end
-      end
-    end
-    
-    def info(msg)
-      @log.info "#{@client_socket.remote_address.ip_address}:#{@client_socket.remote_address.ip_port}: #{msg}"
-    end
-    
-    def warn(msg)
-      @log.info "#{@client_socket.remote_address.ip_address}:#{@client_socket.remote_address.ip_port}: #{msg}"
-    end
-    
-    def fatal(msg)
-      @log.info "#{@client_socket.remote_address.ip_address}:#{@client_socket.remote_address.ip_port}: #{msg}"
     end
     
   end
