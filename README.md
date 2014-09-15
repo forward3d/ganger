@@ -1,5 +1,7 @@
 # Ganger
 
+[![Code Climate](https://codeclimate.com/github/andytinycat/ganger/badges/gpa.svg)](https://codeclimate.com/github/andytinycat/ganger)
+
 ## What is Ganger?
 
 _ganger |ˈgaŋə| noun; Brit; the foreman of a gang of labourers._
