@@ -23,34 +23,6 @@ module Ganger
     def valid?
       info "Validating configuration"
       valid = true
-      
-      # Require at least one Docker daemon
-      if Ganger.conf.docker.daemons.nil?
-        warn "docker.daemons: At least one docker daemon is required"
-        valid = false
-      end
-      
-      # Require Docker daemons be supplied as array of hashes
-      unless Ganger.conf.docker.daemons.is_a?(Array)
-        warn "docker.daemons: Must be an array of hashes"
-        valid = false
-      else
-        Ganger.conf.daemons.each do |daemon_conf|
-          if daemon_conf.is_a?(Hash)
-            if daemon_conf[:url].nil?
-              warn "docker.daemons: Hash is missing symbol param ':url'" 
-              valid = false
-            end
-            if daemon_conf[:max_containers].nil?
-              warn "docker.daemons: Hash is missing symbol param ':max_containers'"
-              valid = false
-            end
-          else
-            warn "docker.daemons: Member of array is not a hash: #{daemon_conf}" unless daemon_conf.is_a?(Hash)
-            valid = false
-          end
-        end
-      end
 
       # An image must be supplied
       if Ganger.conf.docker.image.nil?

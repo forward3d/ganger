@@ -1,15 +1,4 @@
 Ganger.configure do |c|
-
-  # These are all the Docker daemons we can start containers on
-  # It must be an array of hashes, with each hash having a url key
-  # and a max_containers key. If you want to allow an infinite number of
-  # concurrent containers, specify -1. (This is not a good idea!)
-  c.docker.daemons = [
-    {
-      url: 'boot2docker',
-      max_containers: 2
-    }
-  ]
   
   # The image - will be pulled on startup
   c.docker.image = "andytinycat/ncat"
@@ -33,8 +22,47 @@ Ganger.configure do |c|
   c.ganger.docker_timeout = 300
   
   # Engine to use to locate Docker servers
-  # Only 'static' is available right now, but the plan is to support
-  # 'consul' (consul.io) as well
+  # Two engines are available: 'static' and 'consul'.
+  # Static uses a list of pre-configured Docker daemons.
+  # Consul uses the Consul service discovery tool (http://consul.io)
+  # to locate Docker servers to use.
   c.ganger.docker_discovery = 'static'
+  
+  #
+  # STATIC ENGINE SETTINGS
+  #
+  
+  # These are all the Docker daemons we can start containers on
+  # It must be an array of hashes, with each hash having a url key
+  # and a max_containers key. If you want to allow an infinite number of
+  # concurrent containers, specify -1. (This is not a good idea!)
+  c.static_engine.daemons = [
+    {
+      url: 'boot2docker',
+      max_containers: 2
+    }
+  ]
+  
+  #
+  # CONSUL ENGINE SETTINGS
+  #
+  
+  # These are the hosts running Consul that you want to use for
+  # service discovery. You should have at least 3 of these Consul agents
+  # running in server mode for availability.
+  c.consul.hosts = [ 'host1:8500', 'host2:8500', 'host3:8500' ]
+  
+  # The name of the service registered with Consul
+  c.consul.service_name = 'docker'
+  
+  # The maximum number of containers each discovered server will support,
+  # if not specified in a tag (see the README)
+  c.consul.default_max_containers = 10
+  
+  # Consul has three consistency modes when making API request; see the Consul documentation
+  # for more information (http://www.consul.io/docs/agent/http.html)
+  # We default to 'stale', since this is fast and we can cope with service data being
+  # slightly out of date.
+  c.consul.consistency_mode = 'stale'
   
 end

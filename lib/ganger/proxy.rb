@@ -68,6 +68,7 @@ module Ganger
             # Other errors should occur relatively quickly - so sleep a bit then retry
             info "Exception thrown during connection to service: #{e.class}; retrying in #{Ganger.conf.ganger.service_connection_timeout} seconds"
             sleep Ganger.conf.ganger.service_connection_timeout
+          end
         end
       end
       info "Connection established"

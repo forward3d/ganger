@@ -48,6 +48,14 @@ docker_manager = Ganger::DockerManager.new
 case Ganger.conf.ganger.docker_discovery
 when 'static'
   docker_manager.engine = Ganger::Engines::Static.new
+when 'consul'
+  docker_manager.engine = Ganger::Engines::Consul.new
+end
+
+# Validate the discovery engine has all the options it requires
+unless docker_manager.engine.config_valid?
+  log.fatal("Engine config is invalid; exiting")
+  exit 1
 end
 
 # Preload image by telling each Docker server configured to fetch it

@@ -45,7 +45,9 @@ container (when considering the time required to run a query) is minimal.
   useful if you have a service that takes a while to start.
 - Tells all configured Docker daemons to pull the image on startup.
 - Control of various timeout and retry parameters.
-- 
+- Discovery of Docker services with [Consul](http://consul.io). Now you can autoscale your
+  docker hosts!
+- Configurable max containers; will hold connections in a queue until they can be serviced.
 
 ## An example
 

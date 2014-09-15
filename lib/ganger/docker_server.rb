@@ -2,7 +2,7 @@ module Ganger
   class DockerServer
     include Logging
     
-    attr_reader :url
+    attr_reader :url, :max_containers
     
     def initialize(url, max_containers)
       @url = url
@@ -64,6 +64,14 @@ module Ganger
     def dispose_of_container(container)
       @containers.delete_if {|c| c.id == container.id}
       container.dispose
+    end
+    
+    def to_s
+      {url: @url, max_containers: @max_containers}
+    end
+    
+    def inspect
+      to_s
     end
     
   end
