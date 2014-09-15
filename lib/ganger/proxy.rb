@@ -60,15 +60,14 @@ module Ganger
           end
           # For timeouts, don't sleep; retry immediately as time has passed
           if e.is_a?(Errno::ETIMEDOUT)
-            info "Timeout connecting to service after #{Ganger.conf.service_connection_timeout} seconds; retrying"
+            info "Timeout connecting to service after #{Ganger.conf.ganger.service_connection_timeout} seconds; retrying"
           elsif e.is_a?(Errno::ECONNREFUSED)
-            info "Connection refused; retrying in #{Ganger.conf.service_connection_timeout} seconds"
-            sleep Ganger.conf.service_connection_timeout
+            info "Connection refused; retrying in #{Ganger.conf.ganger.service_connection_timeout} seconds"
+            sleep Ganger.conf.ganger.service_connection_timeout
           else
             # Other errors should occur relatively quickly - so sleep a bit then retry
-            info "Exception thrown during connection to service: #{e.class}; retrying in #{Ganger.conf.service_connection_timeout} seconds"
-            sleep Ganger.conf.service_connection_timeout
-          end
+            info "Exception thrown during connection to service: #{e.class}; retrying in #{Ganger.conf.ganger.service_connection_timeout} seconds"
+            sleep Ganger.conf.ganger.service_connection_timeout
         end
       end
       info "Connection established"
