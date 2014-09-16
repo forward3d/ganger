@@ -15,7 +15,6 @@ module Ganger
       
       # Figure out host and port for the service in this container
       @service_host = URI.parse(server_url).host
-      puts @service_host
       get_service_port
       
       info "Service host is: #{@service_host}; service port is #{@service_port}"
