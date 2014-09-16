@@ -20,3 +20,7 @@ RUN bundle install
 # Now add the app
 ADD . /opt/ganger
 WORKDIR /opt/ganger
+
+# Start up Ganger
+EXPOSE 5454
+CMD /opt/ganger/bin/ganger.rb
