@@ -23,4 +23,4 @@ WORKDIR /opt/ganger
 
 # Start up Ganger
 EXPOSE 5454
-CMD /opt/ganger/bin/ganger.rb
+CMD [ "/usr/bin/ruby", "/opt/ganger/bin/ganger.rb" ]
