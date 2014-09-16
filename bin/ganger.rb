@@ -32,6 +32,7 @@ if config_file.nil?
   log.fatal("Failed to load a config file from env var GANGER_CONFIG_FILE and no file supplied as argument; cannot run")
   exit 1
 end
+config_file = File.expand_path(config_file)
 
 log.info("Using config file: #{config_file}")
 require config_file
