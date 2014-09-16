@@ -28,7 +28,7 @@ module Ganger
         rescue EOFError
           info "Closing connection"
           break
-        rescue Exception => e
+        rescue => e
           warn "Exception while proxying: #{e.class}; #{e.backtrace} - exiting proxying thread"
           break
         end
