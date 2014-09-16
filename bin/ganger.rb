@@ -33,10 +33,6 @@ if config_file.nil?
   exit 1
 end
 
-# Load configuration
-CONFIG_FILE = File.expand_path("../../config/ganger-config.rb", __FILE__)
-config_file = ARGV.empty? ? CONFIG_FILE : File.expand_path(ARGV.first)
-
 log.info("Using config file: #{config_file}")
 require config_file
 unless Ganger.configuration.valid?
