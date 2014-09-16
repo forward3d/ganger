@@ -26,6 +26,13 @@ Signal.trap('SIGTERM') do
   cleanup_for_exit
 end
 
+# Go for environment variable, then supplied file
+config_file = ENV['GANGER_CONFIG_FILE'] || ARGV.first
+if config_file.nil?
+  log.fatal("Failed to load a config file from env var GANGER_CONFIG_FILE and no file supplied as argument; cannot run")
+  exit 1
+end
+
 # Load configuration
 CONFIG_FILE = File.expand_path("../../config/ganger-config.rb", __FILE__)
 config_file = ARGV.empty? ? CONFIG_FILE : File.expand_path(ARGV.first)
