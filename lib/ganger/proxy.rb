@@ -11,14 +11,14 @@ module Ganger
     end
     
     def proxy
-      connect_service_socket
-      loop do
-        begin
+      begin
+        connect_service_socket
+        loop do
           handle_ready_sockets
-        rescue => e
-          info "Closing connection: #{e.class}: #{e.message}"
-          break
         end
+      rescue => e
+        info "Closing connection: #{e.class}: #{e.message}"
+        break
       end
     end
     
