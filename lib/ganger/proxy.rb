@@ -108,7 +108,6 @@ module Ganger
     
     def increment_and_raise_if_retry_exceeded
       increment_retry_count
-      info "Retry: #{@current_retry}/#{Ganger.conf.ganger.service_connection_retries}"
       raise Ganger::RetryExceeded, "Retries exceeded while trying to write to the server" if retry_exceeded?
     end
     

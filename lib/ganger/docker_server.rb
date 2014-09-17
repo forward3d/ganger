@@ -13,7 +13,7 @@ module Ganger
     end
 
     def get_container
-      if @containers.size == @max_containers
+      if containers.size == @max_containers
         raise Ganger::MaxContainersReached
       end
       loop do 
@@ -23,7 +23,6 @@ module Ganger
           container.dispose
           sleep 1
         else
-          @containers << container
           return container
         end
       end
@@ -52,8 +51,12 @@ module Ganger
       end
     end
     
+    def containers
+      Docker::Container.all(@connection)
+    end
+    
     def container_count
-      @containers.size
+      containers.size
     end
     
     def pull_image
@@ -62,7 +65,6 @@ module Ganger
     end
     
     def dispose_of_container(container)
-      @containers.delete_if {|c| c.id == container.id}
       container.dispose
     end
     
