@@ -82,6 +82,27 @@ A Docker container was started to service the request.
 When you're done, exit your telnet session (CTRL-], then type `quit` on Mac OS X), and run
 `docker ps` again. The container will have shut down and been destroyed.
 
+## Ganger inside a Docker container
+
+There is a Docker image containing Ganger, if you prefer deploying containers. You can find
+it on the [Docker Hub](https://registry.hub.docker.com/u/andytinycat/ganger/).
+
+It expects you to supply the path to the configuration file as an environment variable.
+In order to allow the configuration file to live outside of the codebase inside the container,
+you'll need to mount the file from the host filesystem into the container.
+
+Here's an example of how to run the container:
+
+    docker run \
+      -v /etc/ganger/ganger-config.rb:/etc/ganger/ganger-config.rb \
+      -e GANGER_CONFIG_FILE=/etc/ganger/ganger-config.rb \
+      -p 10002:5454 \
+      andytinycat/ganger
+
+Note that if you're using Ganger in this way, you need to make sure your configuration file option
+`ganger.listen_port` is set to the same port that you'll forward into the container. In the above case,
+Ganger is listening on 5454/tcp inside the container, and forwarding 10002/tcp into it.
+
 ## Future features
 
 Ganger is a simple proof-of-concept. However, the following features are planned:
