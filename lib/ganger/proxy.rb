@@ -77,6 +77,7 @@ module Ganger
         # We tried to read but got our connection reset - reconnect and send the last data again,
         # then try and read the response again
         info "Connection reset reading response from server; retrying writing previous data in 5 seconds"
+        increment_and_raise_if_retry_exceeded
         wait_for_timeout
         connect_service_socket
         write_to_server
