@@ -54,14 +54,10 @@ module Ganger
           break
         rescue EOFError, Errno::ECONNRESET
           # Retry if the connection gets reset
-          @current_retry = @current_retry + 1
-          if retry_exceeded?
-            raise Ganger::RetryExceeded, "Retries exceeded while trying to write to the server"
-          else
-            info "Connection reset thrown while writing to the server; sleeping and retrying"
-            sleep 5
-            connect_service_socket
-          end
+          increment_and_raise_if_retry_exceeded
+          info "Connection reset thrown while writing to the server; sleeping and retrying"
+          wait_for_timeout
+          connect_service_socket
         rescue => e
           # Raise any other kind of exception up to the proxy loop
           raise e
@@ -82,7 +78,7 @@ module Ganger
         # We tried to read but got our connection reset - reconnect and send the last data again,
         # then try and read the response again
         info "Connection reset reading response from server; retrying writing previous data in 5 seconds"
-        sleep 5
+        wait_for_timeout
         connect_service_socket
         write_to_server
       end
@@ -102,8 +98,18 @@ module Ganger
       @server_send_buffer = nil
     end
     
+    def increment_retry_count
+      @current_retry = @current_retry + 1
+    end
+    
     def retry_exceeded?
       @current_retry == Ganger.conf.ganger.service_connection_retries - 1
+    end
+    
+    def increment_and_raise_if_retry_exceeded
+      increment_retry_count
+      info "Retry: #{@current_retry}/#{Ganger.conf.ganger.service_connection_retries}"
+      raise Ganger::RetryExceeded, "Retries exceeded while trying to write to the server" if retry_exceeded?
     end
     
     def get_service_socket           
@@ -116,33 +122,30 @@ module Ganger
       socket.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1)
       @service_socket = socket
     end
-          
     
     def connect_service_socket
-      Ganger.conf.ganger.service_connection_retries.times do |count|
+      loop do
         begin
           get_service_socket
           @service_socket.connect(
             Socket.pack_sockaddr_in(@container.service_port.to_i, @container.service_host)
           )
           break
-        rescue SystemCallError => e
-          if count == Ganger.conf.ganger.service_connection_retries
-            raise "No connection established with container after #{Ganger.conf.ganger.service_connection_retries} attempts; terminating connection"
-          end
-          # For timeouts, don't sleep; retry immediately as time has passed
-          if e.is_a?(Errno::ETIMEDOUT)
-            info "Timeout connecting to service after #{Ganger.conf.ganger.service_connection_timeout} seconds; retrying"
-          elsif e.is_a?(Errno::ECONNREFUSED)
-            info "Connection refused; retrying in #{Ganger.conf.ganger.service_connection_timeout} seconds"
-            sleep Ganger.conf.ganger.service_connection_timeout
-          else
-            # Other errors should occur relatively quickly - so sleep a bit then retry
-            info "Exception thrown during connection to service: #{e.class}; retrying in #{Ganger.conf.ganger.service_connection_timeout} seconds"
-            sleep Ganger.conf.ganger.service_connection_timeout
-          end
+        rescue Errno::ETIMEDOUT
+          info "Timeout connecting to service after #{Ganger.conf.ganger.service_connection_timeout} seconds; retrying"
+        rescue Errno::ECONNREFUSED
+          info "Connection refused; retrying in #{Ganger.conf.ganger.service_connection_timeout} seconds"
+        rescue
+          info "Exception thrown during connection to service: #{e.class}; retrying in #{Ganger.conf.ganger.service_connection_timeout} seconds"
+        ensure
+          increment_and_raise_if_retry_exceeded
+          wait_for_timeout
         end
       end
+    end
+    
+    def wait_for_timeout
+      sleep Ganger.conf.ganger.service_connection_timeout
     end
     
   end
