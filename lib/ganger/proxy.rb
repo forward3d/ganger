@@ -18,7 +18,6 @@ module Ganger
         end
       rescue => e
         info "Closing connection: #{e.class}: #{e.message}"
-        break
       end
     end
     
