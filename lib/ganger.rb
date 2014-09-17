@@ -31,6 +31,8 @@ module Ganger
     @configuration
   end
   
-  class MaxContainersReached < Exception ; end
+  class MaxContainersReached < StandardError ; end
+  class RetryExceeded < StandardError ; end
+  class ClientConnectionClosed < StandardError ; end
   
 end
