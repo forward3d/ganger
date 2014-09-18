@@ -8,6 +8,7 @@ module Ganger
       @log = Logger.new(STDOUT)
       info "Received connection from #{@client_socket.remote_address.ip_address}:#{@client_socket.remote_address.ip_port}"
       @current_retry = 0
+      @connection_up = false
     end
     
     def proxy
@@ -80,6 +81,7 @@ module Ganger
         # managed to send data to the server
         data = @service_socket.readpartial(4096)
         reset_server_send_buffer
+        @connection_up = true
       rescue EOFError, Errno::ECONNRESET
         # We tried to read but got our connection reset - reconnect and send the last data again,
         # then try and read the response again
@@ -102,7 +104,7 @@ module Ganger
     end
     
     def reset_server_send_buffer
-      info "Resetting server_send_buffer - looks like the connection is up" unless @server_send_buffer.nil?
+      info "Resetting server_send_buffer - looks like the connection is up" unless @connection_up
       @server_send_buffer = nil
     end
     

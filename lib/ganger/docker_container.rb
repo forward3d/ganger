@@ -11,7 +11,7 @@ module Ganger
       @container = container
       @id = @container.json["Id"]
       @name = @container.json["Name"].gsub('/', '')
-      info "Created container with properties: #{container.json.to_s}"
+      info "Created container on #{@server_url} with name #{@name} and ID #{@id}"
       
       # Figure out host and port for the service in this container
       @service_host = URI.parse(server_url).host
