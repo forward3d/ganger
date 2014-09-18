@@ -85,7 +85,7 @@ When you're done, exit your telnet session (CTRL-], then type `quit` on Mac OS X
 ## Ganger inside a Docker container
 
 There is a Docker image containing Ganger, if you prefer deploying containers. You can find
-it on the [Docker Hub](https://registry.hub.docker.com/u/andytinycat/ganger/).
+it on the [Docker Hub](https://registry.hub.docker.com/u/forward3d/ganger/).
 
 It expects you to supply the path to the configuration file as an environment variable.
 In order to allow the configuration file to live outside of the codebase inside the container,
