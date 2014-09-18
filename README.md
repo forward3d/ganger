@@ -26,8 +26,8 @@ what the port you want to be available to clients on is, and Ganger will do the 
 
 ## That sounds mad! Why would you want to use Ganger?
 
-The rationale for creating Ganger was driven by a real-world problem. I use
-Hive to query the data I import into Hadoop. They run over small amounts of data.
+The rationale for creating Ganger was driven by a real-world problem. At Forward3D we use
+Hive to query the data we import into Hadoop. They run over small amounts of data.
 [Hive local mode](http://hadoop-pig-hive-thejas.blogspot.co.uk/2013/04/running-hive-in-local-mode.html) is a
 good way to run small jobs quickly without the overhead of launching MapReduce JVMs on a cluster.
 
