@@ -52,7 +52,7 @@ module Ganger
     end
     
     def containers
-      Docker::Container.all(@connection)
+      Docker::Container.all({}, @connection)
     end
     
     def container_count
