@@ -102,6 +102,7 @@ module Ganger
     end
     
     def reset_server_send_buffer
+      info "Resetting server_send_buffer - looks like the connection is up" unless @server_send_buffer.nil?
       @server_send_buffer = nil
     end
     

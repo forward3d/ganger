@@ -45,10 +45,19 @@ module Ganger
             next
           end
           
+          info "Discovered the following services: #{format_services(services)}"
+          
           # Find the least utilized server
           least_used_server = services.sort_by {|s| s[:percentage_used] }.first
+          info "Decided to use server: #{least_used_server[:server].url}, at percentage used: #{least_used_server[:percentage_used]}"
           return least_used_server[:server]
         end
+      end
+      
+      def format_services(services)
+        services.map do |s| 
+          "{url: #{s[:server].url}, percentage_used: #{s[:percentage_used]}}"
+        end.join('; ')
       end
             
       def find_all_services
