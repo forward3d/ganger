@@ -35,7 +35,7 @@ module Ganger
             info "Proxying completed; exiting proxy thread"
           end
         rescue => e
-          fatal "An error occurred while proxying: #{e.class}"
+          fatal "An error occurred while proxying: #{e.class}: #{e.message}"
           fatal e.backtrace
         end
       end

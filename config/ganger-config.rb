@@ -50,19 +50,23 @@ Ganger.configure do |c|
   # These are the hosts running Consul that you want to use for
   # service discovery. You should have at least 3 of these Consul agents
   # running in server mode for availability.
-  c.consul.hosts = [ 'host1:8500', 'host2:8500', 'host3:8500' ]
+  c.consul_engine.hosts = [ 'host1:8500', 'host2:8500', 'host3:8500' ]
   
   # The name of the service registered with Consul
-  c.consul.service_name = 'docker'
+  c.consul_engine.service_name = 'docker'
   
   # The maximum number of containers each discovered server will support,
   # if not specified in a tag (see the README)
-  c.consul.default_max_containers = 10
+  c.consul_engine.default_max_containers = 10
   
   # Consul has three consistency modes when making API request; see the Consul documentation
   # for more information (http://www.consul.io/docs/agent/http.html)
   # We default to 'stale', since this is fast and we can cope with service data being
   # slightly out of date.
-  c.consul.consistency_mode = 'stale'
+  c.consul_engine.consistency_mode = 'stale'
+  
+  # List of datacenters to try for services, in order of preference.
+  # e.g. Here we'd try to find a service in DC 'eu', then 'us', then 'faraway'
+  c.consul_engine.datacenters = ['eu', 'us', 'faraway']
   
 end

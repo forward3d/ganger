@@ -5,7 +5,9 @@ module Ganger
       
       def initialize
         @consul_hosts = Ganger.conf.consul_engine.hosts
-        @server_cache = {}
+        @service_name = Ganger.conf.consul_engine.service_name
+        @datacenters = Ganger.conf.consul_engine.datacenters
+        @default_max_containers = Ganger.conf.consul_engine.default_max_containers
       end
       
       def config_valid?
@@ -26,60 +28,69 @@ module Ganger
       end
       
       def dispose_of_container(container)
-        discovered_docker_servers.find {|s| s.url == container.server_url}.dispose_of_container(container)
+        container.dispose
       end
       
       private
       
       def least_utilized_server
         loop do
-          servers = discovered_docker_servers
+          services = find_all_services
           
           # We can discover no servers if Consul's broken, or there are no available
           # services at the moment - loop and block until we can get a container from a server
-          if servers.empty?
+          if services.empty?
             warn "Could not discover any servers from Consul; sleeping and retrying"
             sleep 5
             next
           end
           
           # Find the least utilized server
-          percentage_used_servers = servers.map do |server|
-            current_containers = @server_cache[server.url].to_f || 0.to_f
-            percentage_used = current_containers / server.max_containers.to_f
-            { server: server, percentage_used: percentage_used }
-          end
-          least_used_server = percentage_used_servers.sort_by {|s| s[:percentage_used] }.first
+          least_used_server = services.sort_by {|s| s[:percentage_used] }.first
           return least_used_server[:server]
         end
       end
-      
-      def discovered_docker_servers
-        docker_servers = []
-        @consul_hosts.shuffle.each do |host_and_port|
-          begin
             
-            json = JSON.parse(
-              HTTParty.get(
-                "http://#{host_and_port}/v1/catalog/service/#{Ganger.conf.consul_engine.service_name}?#{Ganger.conf.consul_engine.consistency_mode}"
-              ).body)
-              
-            docker_servers = json.map do |service|
-              max_containers_tag = service['ServiceTags'].find {|t| t =~ /^max_containers:\d+$/}
-              max_containers = max_containers_tag.empty? ? Ganger.conf.consul_engine.default_max_containers : max_containers_tag.gsub('max_containers:', '')
-              Ganger::DockerServer.new("tcp://#{service['Address']}:#{service['ServicePort']}", max_containers)
-            end
-            break
-          rescue Timeout::Error => e
-            warn "Timeout attempting to contact Consul server: #{host_and_port}; trying next server"
-          rescue JSON::ParserError => e
-            warn "JSON parsing of Consul API response from #{host_and_port} failed; trying next server"
+      def find_all_services
+        services = []
+        Ganger.conf.consul_engine.datacenters.map do |dc|
+          info "Looking for service in datacenter: #{dc}"
+          find_services_in_dc(dc)
+        end.flatten.compact
+      end
+      
+      def find_services_in_dc(dc)
+        # Try each Consul server in turn, return nil if we can't talk to Consul
+        @consul_hosts.shuffle.each do |host_and_port|
+          info "Calling #{host_and_port}"
+          url = "http://#{host_and_port}/v1/catalog/service/#{@service_name}?dc=#{dc}&#{@consistency_mode}"
+          begin
+            response = HTTParty.get(url)
+            raise "Consul server returned non-200 response" if response.code != 200
+            return parse_consul_response(response.body, dc)
           rescue => e
-            warn "Some exception (#{e.class}: #{e.backtrace}) occurred speaking to the Consul API on #{host_and_port}; trying next server"
+            info "#{e.class}: #{e.message}"
           end
         end
-        info "Docker servers discovered via Consul: #{docker_servers.to_s}"
-        docker_servers
+        nil
+      end
+      
+      def parse_consul_response(response, dc)
+        json = JSON.parse(response)
+        docker_servers_info = json.map do |service|
+          max_containers_tag = service['ServiceTags'].find {|t| t =~ /^max_containers:\d+$/}
+          max_containers = max_containers_tag.empty? ? @default_max_containers : max_containers_tag.gsub('max_containers:', '')
+          server = Ganger::DockerServer.new("tcp://#{service['Address']}:#{service['ServicePort']}", max_containers)
+          container_count = server.container_count
+          usage = container_count.to_f / max_containers.to_f
+          {
+            server: server,
+            current_containers: container_count,
+            max_containers: max_containers,
+            dc: dc,
+            percentage_used: usage
+          }
+        end
       end
       
     end
