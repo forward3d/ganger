@@ -34,13 +34,20 @@ module Ganger
       end
     end
     
-    def write_to_server
+    def write_to_server(send_buffer = false)
       loop do
         
         # Read from the client
+        data = nil
         begin
-          # Buffer data in case client write gets connection reset
-          @server_send_buffer ||= @client_socket.readpartial(4096)
+          if send_buffer
+            data = @server_send_buffer
+          else
+            # Buffer data in case client write gets connection reset
+            data = @client_socket.readpartial(4096)
+            @server_send_buffer ||= ""
+            @server_send_buffer << data
+          end
         rescue EOFError
           # The client hung up their connection
           raise Ganger::ClientConnectionClosed, "Client closed connection while we were reading data from them"
@@ -48,7 +55,7 @@ module Ganger
         
         # Write to the server
         begin
-          @service_socket.write(@server_send_buffer)
+          @service_socket.write(data)
           @service_socket.flush
           break
         rescue EOFError, Errno::ECONNRESET
@@ -80,7 +87,7 @@ module Ganger
         increment_and_raise_if_retry_exceeded
         wait_for_timeout
         connect_service_socket
-        write_to_server
+        write_to_server(true)
       end
       
       # Write to the client
