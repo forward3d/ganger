@@ -47,11 +47,32 @@ module Ganger
           
           info "Discovered the following services: #{format_services(services)}"
           
-          # Find the least utilized server
-          least_used_server = services.sort_by {|s| s[:percentage_used] }.first
-          info "Decided to use server: #{least_used_server[:server].url}, at percentage used: #{least_used_server[:percentage_used]}"
+          # Find the least utilized server - first look in the preferred datacenter,
+          # and if any server has capacity, use that; if the DC is at capacity,
+          # try the next DC, and so on. If we can't find any server, then sleep.
+          least_used_server = find_least_utilized_server_by_dc_preference(services)
+          if least_used_server.nil?
+            info "All servers in all DCs are at capacity; sleeping and retrying"
+            sleep 5
+            next
+          end
+          
+          info "Decided to use server: #{least_used_server[:server].url}, at percentage used: #{least_used_server[:percentage_used]}, in dc: #{least_used_server[:dc]}"
           return least_used_server[:server]
         end
+      end
+      
+      def find_least_utilized_server_by_dc_preference(services)
+        @datacenters.each do |dc|
+          info "Looking for least used server in DC #{dc}"
+          service = services.select {|s| s[:dc] == dc}.sort_by {|s| s[:percentage_used]}.first
+          if service[:percentage_used] == 1
+            info "All services in DC #{dc} at capacity - trying next DC"
+          else
+            return service
+          end
+        end
+        nil
       end
       
       def format_services(services)
