@@ -1,8 +1,16 @@
 # Ganger changelog
 
-## HEAD
+## 0.3.0
 
-Huge redesign to support planned new features.
+Significant redesign:
+
+* A single thread is responsible for container allocation and launch, which makes
+  features like pooling and limiting possible.
+* The network code has been significantly hardened against various kinds of failures.
+* The container allocation code has been separated off into 'engines'.
+* Some basic barely-tested support for Consul discovery of Docker daemons has been added.
+* The configuration file is now pure Ruby (like Vagrant etc).
+* Numerous other fixes and improvements.
 
 ## 0.0.4
 
