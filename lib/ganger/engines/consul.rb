@@ -66,6 +66,10 @@ module Ganger
         @datacenters.each do |dc|
           info "Looking for least used server in DC #{dc}"
           service = services.select {|s| s[:dc] == dc}.sort_by {|s| s[:percentage_used]}.first
+          if service.nil?
+            info "No services in this DC; skipping"
+            next
+          end
           if service[:percentage_used] == 1
             info "All services in DC #{dc} at capacity - trying next DC"
           else
