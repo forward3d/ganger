@@ -2,11 +2,11 @@ GEM
   remote: https://rubygems.org/
   specs:
     archive-tar-minitar (0.5.2)
-    docker-api (1.13.2)
+    docker-api (1.15.0)
       archive-tar-minitar
       excon (>= 0.38.0)
       json
-    excon (0.39.5)
+    excon (0.41.0)
     httparty (0.13.1)
       json (~> 1.8)
       multi_xml (>= 0.5.2)
